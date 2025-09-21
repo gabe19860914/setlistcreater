@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../models/setlist_model.dart';
 import 'export_screen.dart';
 
@@ -10,61 +11,75 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  // 各入力フォームのコントローラー
+  // フォームの入力を管理するためのキー
+  final _formKey = GlobalKey<FormState>();
+
+  // 各テキストフィールドの入力を管理するコントローラー
   final _titleController = TextEditingController();
   final _venueController = TextEditingController();
   final _songTitleController = TextEditingController();
   final _songArtistController = TextEditingController();
 
-  // 追加された曲のリスト
+  DateTime _selectedDate = DateTime.now();
   final List<Song> _songs = [];
 
-  // 曲をリストに追加するメソッド
-  void _addSong() {
-    final title = _songTitleController.text;
-    final artist = _songArtistController.text;
-
-    if (title.isNotEmpty && artist.isNotEmpty) {
+  // 日付選択ピッカーを表示する関数
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2101),
+    );
+    if (picked != null && picked != _selectedDate) {
       setState(() {
-        _songs.add(Song(title: title, artist: artist));
+        _selectedDate = picked;
       });
-      _songTitleController.clear();
-      _songArtistController.clear();
-      FocusScope.of(context).unfocus(); // キーボードを閉じる
     }
   }
 
-  // 曲をリストから削除するメソッド
-  void _removeSong(int index) {
-    setState(() {
-      _songs.removeAt(index);
-    });
+  // 曲をリストに追加する関数
+  void _addSong() {
+    if (_songTitleController.text.isNotEmpty &&
+        _songArtistController.text.isNotEmpty) {
+      setState(() {
+        _songs.add(Song(
+          title: _songTitleController.text,
+          artist: _songArtistController.text,
+        ));
+        _songTitleController.clear();
+        _songArtistController.clear();
+      });
+      // フォーカスを曲名入力フィールドに戻す
+      FocusScope.of(context).previousFocus();
+    }
   }
 
-  // PDF出力画面へ遷移するメソッド
+  // PDFプレビュー画面に遷移する関数
   void _navigateToExportScreen() {
-    if (_titleController.text.isEmpty ||
-        _venueController.text.isEmpty ||
-        _songs.isEmpty) {
-      // 入力チェック
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('公演タイトル、会場名、曲を1曲以上入力してください')),
+    // バリデーションを実行
+    if (_formKey.currentState!.validate() && _songs.isNotEmpty) {
+      final setlist = Setlist(
+        title: _titleController.text,
+        date: _selectedDate,
+        venue: _venueController.text,
+        songs: _songs,
       );
-      return;
+
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => ExportScreen(setlist: setlist),
+        ),
+      );
+    } else if (_songs.isEmpty) {
+      // 曲が追加されていない場合にスナックバーで通知
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('曲を1曲以上追加してください。'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
-
-    final setlist = Setlist(
-      title: _titleController.text,
-      venue: _venueController.text,
-      date: DateTime.now(), // 現在の日付を使用
-      songs: _songs,
-    );
-
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => ExportScreen(setlist: setlist),
-      ),
-    );
   }
 
   @override
@@ -82,61 +97,96 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Setlist Creator'),
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+      body: Form(
+        key: _formKey,
+        child: ListView(
+          padding: const EdgeInsets.all(16.0),
           children: [
-            // --- 公演情報 ---
-            const Text('公演情報',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-            TextField(
+            // 公演タイトル入力
+            TextFormField(
               controller: _titleController,
               decoration: const InputDecoration(
-                  labelText: '公演タイトル', border: OutlineInputBorder()),
+                labelText: '公演タイトル',
+                border: OutlineInputBorder(),
+              ),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return '公演タイトルを入力してください。';
+                }
+                return null;
+              },
             ),
-            const SizedBox(height: 12),
-            TextField(
+            const SizedBox(height: 16),
+            // 会場入力
+            TextFormField(
               controller: _venueController,
               decoration: const InputDecoration(
-                  labelText: '会場', border: OutlineInputBorder()),
+                labelText: '会場',
+                border: OutlineInputBorder(),
+              ),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return '会場を入力してください。';
+                }
+                return null;
+              },
             ),
-            const SizedBox(height: 24),
-
-            // --- 曲の追加 ---
-            const Text('曲の追加',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-            TextField(
+            const SizedBox(height: 16),
+            // 日付選択
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    '公演日: ${DateFormat('yyyy年MM月dd日').format(_selectedDate)}',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: () => _selectDate(context),
+                  child: const Text('日付を選択'),
+                ),
+              ],
+            ),
+            const Divider(height: 32),
+            // 曲追加セクション
+            Text('曲の追加', style: Theme.of(context).textTheme.headlineSmall),
+            const SizedBox(height: 16),
+            TextFormField(
               controller: _songTitleController,
               decoration: const InputDecoration(
-                  labelText: '曲名', border: OutlineInputBorder()),
+                labelText: '曲名',
+                border: OutlineInputBorder(),
+              ),
             ),
-            const SizedBox(height: 12),
-            TextField(
+            const SizedBox(height: 16),
+            TextFormField(
               controller: _songArtistController,
               decoration: const InputDecoration(
-                  labelText: 'アーティスト', border: OutlineInputBorder()),
+                labelText: 'アーティスト名',
+                border: OutlineInputBorder(),
+              ),
+              onFieldSubmitted: (_) => _addSong(), // Enterキーで曲を追加
             ),
-            const SizedBox(height: 12),
-            ElevatedButton.icon(
-              icon: const Icon(Icons.add),
-              label: const Text('曲を追加'),
-              onPressed: _addSong,
+            const SizedBox(height: 16),
+            Align(
+              alignment: Alignment.centerRight,
+              child: ElevatedButton.icon(
+                onPressed: _addSong,
+                icon: const Icon(Icons.add),
+                label: const Text('曲を追加'),
+              ),
             ),
-            const SizedBox(height: 24),
-
-            // --- 曲リスト ---
-            const Text('セットリスト',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            const Divider(),
+            const Divider(height: 32),
+            // 曲リスト表示
+            Text('曲リスト (${_songs.length}曲)',
+                style: Theme.of(context).textTheme.headlineSmall),
             _songs.isEmpty
-                ? const Center(child: Padding(
-                  padding: EdgeInsets.all(16.0),
-                  child: Text('まだ曲がありません'),
-                ))
+                ? const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 16.0),
+                    child: Center(child: Text('まだ曲がありません。')),
+                  )
                 : ListView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
@@ -148,24 +198,25 @@ class _HomeScreenState extends State<HomeScreen> {
                         title: Text(song.title),
                         subtitle: Text(song.artist),
                         trailing: IconButton(
-                          icon: const Icon(Icons.delete, color: Colors.red),
-                          onPressed: () => _removeSong(index),
+                          icon: const Icon(Icons.delete_outline, color: Colors.red),
+                          onPressed: () {
+                            setState(() {
+                              _songs.removeAt(index);
+                            });
+                          },
                         ),
                       );
                     },
                   ),
             const SizedBox(height: 32),
-
-            // --- PDF出力ボタン ---
+            // PDF作成ボタン
             ElevatedButton(
+              onPressed: _navigateToExportScreen,
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 16),
-                backgroundColor: Theme.of(context).primaryColor,
-                foregroundColor: Colors.white,
+                textStyle: Theme.of(context).textTheme.titleLarge,
               ),
-              onPressed: _navigateToExportScreen,
-              child:
-                  const Text('PDFを作成してプレビュー', style: TextStyle(fontSize: 16)),
+              child: const Text('PDFを作成してプレビュー'),
             ),
           ],
         ),

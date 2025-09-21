@@ -1,35 +1,21 @@
-name: setlistcreater
-description: A Flutter app for creating and exporting concert setlists as a Web App.
-publish_to: 'none'
-version: 1.0.0+1
+import 'package:flutter/material.dart';
+import 'screens/home_screen.dart';
 
-environment:
-  sdk: '>=3.0.0 <4.0.0'
+void main() => runApp(const SetlistApp());
 
-dependencies:
-  flutter:
-    sdk: flutter
+class SetlistApp extends StatelessWidget {
+  const SetlistApp({super.key});
 
-  # PDF生成のコアライブラリ
-  pdf: ^3.10.7
-  # WebでのPDFプレビュー、印刷、ダウンロード機能を提供
-  printing: ^5.12.0
-  # Webでも動作する画像選択ライブラリ（将来の機能用）
-  image_picker: ^1.1.2
-  # Webでも動作する共有ライブラリ
-  share_plus: ^9.0.0
-  # 日付フォーマット用のライブラリ
-  intl: ^0.18.1
-
-dev_dependencies:
-  flutter_test:
-    sdk: flutter
-
-flutter:
-  uses-material-design: true
-
-  # Webビルドでフォントを読み込むための設定
-  assets:
-    - assets/fonts/
-
-    lib/models/setlist_model.dart
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Setlist Creator',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+        useMaterial3: true,
+      ),
+      home: const HomeScreen(),
+    );
+  }
+}

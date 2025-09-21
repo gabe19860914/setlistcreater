@@ -1,0 +1,33 @@
+name: setlistcreater
+description: A Flutter app for creating and exporting concert setlists as a Web App.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # PDF生成のコアライブラリ
+  pdf: ^3.10.7
+  # WebでのPDFプレビュー、印刷、ダウンロード機能を提供
+  printing: ^5.12.0
+  # Webでも動作する画像選択ライブラリ（将来の機能用）
+  image_picker: ^1.1.2
+  # Webでも動作する共有ライブラリ
+  share_plus: ^9.0.0
+  # 日付フォーマット用のライブラリ
+  intl: ^0.18.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
+
+  # Webビルドでフォントを読み込むための設定
+  assets:
+    - assets/fonts/
