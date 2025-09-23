@@ -19,15 +19,14 @@ Future<Uint8List> generatePdf(Setlist setlist) async {
     bold: boldTtf,
   );
 
-  // 曲リストのヘッダー
-  const tableHeaders = ['#', '曲名', 'アーティスト'];
-  // 曲リストのデータを作成
+  // 曲リストのヘッダー (アーティストを削除)
+  const tableHeaders = ['#', '曲名'];
+  // 曲リストのデータを作成 (アーティストを削除)
   final tableData = setlist.songs
       .asMap()
       .map((index, song) => MapEntry(index, [
             (index + 1).toString(),
             song.title,
-            song.artist,
           ]))
       .values
       .toList();
@@ -60,7 +59,7 @@ Future<Uint8List> generatePdf(Setlist setlist) async {
             ),
             pw.Divider(height: 30),
 
-            // 曲リストのテーブル
+            // 曲リストのテーブル (アーティスト列を削除)
             pw.Table.fromTextArray(
               headers: tableHeaders,
               data: tableData,
@@ -71,12 +70,10 @@ Future<Uint8List> generatePdf(Setlist setlist) async {
               cellAlignments: {
                 0: pw.Alignment.center,
                 1: pw.Alignment.centerLeft,
-                2: pw.Alignment.centerLeft,
               },
               columnWidths: {
                 0: const pw.FixedColumnWidth(30),
                 1: const pw.FlexColumnWidth(),
-                2: const pw.FlexColumnWidth(),
               }
             ),
           ],

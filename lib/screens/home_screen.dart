@@ -18,7 +18,6 @@ class _HomeScreenState extends State<HomeScreen> {
   final _titleController = TextEditingController();
   final _venueController = TextEditingController();
   final _songTitleController = TextEditingController();
-  final _songArtistController = TextEditingController();
 
   DateTime _selectedDate = DateTime.now();
   final List<Song> _songs = [];
@@ -40,18 +39,15 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // 曲をリストに追加する関数
   void _addSong() {
-    if (_songTitleController.text.isNotEmpty &&
-        _songArtistController.text.isNotEmpty) {
+    if (_songTitleController.text.isNotEmpty) {
       setState(() {
         _songs.add(Song(
           title: _songTitleController.text,
-          artist: _songArtistController.text,
         ));
         _songTitleController.clear();
-        _songArtistController.clear();
       });
       // フォーカスを曲名入力フィールドに戻す
-      FocusScope.of(context).previousFocus();
+      FocusScope.of(context).requestFocus();
     }
   }
 
@@ -88,7 +84,6 @@ class _HomeScreenState extends State<HomeScreen> {
     _titleController.dispose();
     _venueController.dispose();
     _songTitleController.dispose();
-    _songArtistController.dispose();
     super.dispose();
   }
 
@@ -159,14 +154,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 labelText: '曲名',
                 border: OutlineInputBorder(),
               ),
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _songArtistController,
-              decoration: const InputDecoration(
-                labelText: 'アーティスト名',
-                border: OutlineInputBorder(),
-              ),
               onFieldSubmitted: (_) => _addSong(), // Enterキーで曲を追加
             ),
             const SizedBox(height: 16),
@@ -196,7 +183,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       return ListTile(
                         leading: CircleAvatar(child: Text('${index + 1}')),
                         title: Text(song.title),
-                        subtitle: Text(song.artist),
                         trailing: IconButton(
                           icon: const Icon(Icons.delete_outline, color: Colors.red),
                           onPressed: () {
