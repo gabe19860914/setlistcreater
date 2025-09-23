@@ -1,0 +1,17 @@
+{
+  "name": "Flutter Setlist Creator Dev",
+  // Codespacesがベースとして使用するOSイメージを指定
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+
+  // Codespacesが作成された後に、自動で実行されるコマンド
+  "postCreateCommand": "sudo apt-get update && sudo apt-get install -y git wget unzip nano libu2f-udev libvulkan1 && wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb && sudo dpkg -i google-chrome-stable_current_amd64.deb || sudo apt-get -f install -y && rm google-chrome-stable_current_amd64.deb && git clone https://github.com/flutter/flutter.git -b stable /home/codespace/flutter && echo 'export PATH=\"$PATH:/home/codespace/flutter/bin\"' >> ~/.bashrc && source ~/.bashrc",
+
+  // VS Codeにインストールを推奨する拡張機能
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "Dart-Code.flutter"
+      ]
+    }
+  }
+}
