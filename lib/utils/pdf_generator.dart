@@ -85,3 +85,4 @@ Future<Uint8List> generatePdf(Setlist setlist) async {
   // PDFをバイトデータとして保存
   return pdf.save();
 }
+
