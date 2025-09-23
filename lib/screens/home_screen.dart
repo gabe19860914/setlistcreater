@@ -22,6 +22,11 @@ class _HomeScreenState extends State<HomeScreen> {
   DateTime _selectedDate = DateTime.now();
   final List<Song> _songs = [];
 
+  // --- 機能追加：ここから ---
+  bool _isLandscape = false; // false: 縦向き, true: 横向き
+  int _divisionCount = 1; // 分割数 (1, 2, 4)
+  // --- 機能追加：ここまで ---
+
   // 日付選択ピッカーを表示する関数
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
@@ -46,14 +51,12 @@ class _HomeScreenState extends State<HomeScreen> {
         ));
         _songTitleController.clear();
       });
-      // フォーカスを曲名入力フィールドに戻す
       FocusScope.of(context).requestFocus();
     }
   }
 
   // PDFプレビュー画面に遷移する関数
   void _navigateToExportScreen() {
-    // バリデーションを実行
     if (_formKey.currentState!.validate() && _songs.isNotEmpty) {
       final setlist = Setlist(
         title: _titleController.text,
@@ -64,11 +67,15 @@ class _HomeScreenState extends State<HomeScreen> {
 
       Navigator.of(context).push(
         MaterialPageRoute(
-          builder: (context) => ExportScreen(setlist: setlist),
+          builder: (context) => ExportScreen(
+            setlist: setlist,
+            // --- 機能追加：選択した設定を渡す ---
+            isLandscape: _isLandscape,
+            divisionCount: _divisionCount,
+          ),
         ),
       );
     } else if (_songs.isEmpty) {
-      // 曲が追加されていない場合にスナックバーで通知
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('曲を1曲以上追加してください。'),
@@ -80,7 +87,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
-    // コントローラーを破棄
     _titleController.dispose();
     _venueController.dispose();
     _songTitleController.dispose();
@@ -99,37 +105,21 @@ class _HomeScreenState extends State<HomeScreen> {
         child: ListView(
           padding: const EdgeInsets.all(16.0),
           children: [
-            // 公演タイトル入力
+            // ... (公演タイトル、会場、日付のコードは変更なし) ...
             TextFormField(
               controller: _titleController,
               decoration: const InputDecoration(
-                labelText: '公演タイトル',
-                border: OutlineInputBorder(),
-              ),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return '公演タイトルを入力してください。';
-                }
-                return null;
-              },
+                  labelText: '公演タイトル', border: OutlineInputBorder()),
+              validator: (v) => v!.isEmpty ? '公演タイトルを入力してください。' : null,
             ),
             const SizedBox(height: 16),
-            // 会場入力
             TextFormField(
               controller: _venueController,
               decoration: const InputDecoration(
-                labelText: '会場',
-                border: OutlineInputBorder(),
-              ),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return '会場を入力してください。';
-                }
-                return null;
-              },
+                  labelText: '会場', border: OutlineInputBorder()),
+              validator: (v) => v!.isEmpty ? '会場を入力してください。' : null,
             ),
             const SizedBox(height: 16),
-            // 日付選択
             Row(
               children: [
                 Expanded(
@@ -145,16 +135,14 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
             const Divider(height: 32),
-            // 曲追加セクション
+            // ... (曲追加、曲リストのコードは変更なし) ...
             Text('曲の追加', style: Theme.of(context).textTheme.headlineSmall),
             const SizedBox(height: 16),
             TextFormField(
               controller: _songTitleController,
               decoration: const InputDecoration(
-                labelText: '曲名',
-                border: OutlineInputBorder(),
-              ),
-              onFieldSubmitted: (_) => _addSong(), // Enterキーで曲を追加
+                  labelText: '曲名', border: OutlineInputBorder()),
+              onFieldSubmitted: (_) => _addSong(),
             ),
             const SizedBox(height: 16),
             Align(
@@ -166,14 +154,10 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             const Divider(height: 32),
-            // 曲リスト表示
             Text('曲リスト (${_songs.length}曲)',
                 style: Theme.of(context).textTheme.headlineSmall),
             _songs.isEmpty
-                ? const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 16.0),
-                    child: Center(child: Text('まだ曲がありません。')),
-                  )
+                ? const Center(child: Padding(padding: EdgeInsets.all(16), child: Text('まだ曲がありません。')))
                 : ListView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
@@ -184,16 +168,54 @@ class _HomeScreenState extends State<HomeScreen> {
                         leading: CircleAvatar(child: Text('${index + 1}')),
                         title: Text(song.title),
                         trailing: IconButton(
-                          icon: const Icon(Icons.delete_outline, color: Colors.red),
-                          onPressed: () {
-                            setState(() {
-                              _songs.removeAt(index);
-                            });
-                          },
+                          icon: const Icon(Icons.delete_outline,
+                              color: Colors.red),
+                          onPressed: () => setState(() => _songs.removeAt(index)),
                         ),
                       );
                     },
                   ),
+
+            // --- 機能追加：PDF設定UI ---
+            const Divider(height: 32),
+            Text('PDFレイアウト設定', style: Theme.of(context).textTheme.headlineSmall),
+            const SizedBox(height: 16),
+            // 用紙の向き選択
+            SegmentedButton<bool>(
+              segments: const [
+                ButtonSegment<bool>(value: false, label: Text('縦向き')),
+                ButtonSegment<bool>(value: true, label: Text('横向き')),
+              ],
+              selected: {_isLandscape},
+              onSelectionChanged: (newSelection) {
+                setState(() {
+                  _isLandscape = newSelection.first;
+                });
+              },
+            ),
+            const SizedBox(height: 16),
+            // 分割数選択
+            DropdownButtonFormField<int>(
+              value: _divisionCount,
+              decoration: const InputDecoration(
+                labelText: '分割数',
+                border: OutlineInputBorder(),
+              ),
+              items: const [
+                DropdownMenuItem(value: 1, child: Text('1分割（分割なし）')),
+                DropdownMenuItem(value: 2, child: Text('2分割')),
+                DropdownMenuItem(value: 4, child: Text('4分割')),
+              ],
+              onChanged: (value) {
+                if (value != null) {
+                  setState(() {
+                    _divisionCount = value;
+                  });
+                }
+              },
+            ),
+            // --- 機能追加：ここまで ---
+
             const SizedBox(height: 32),
             // PDF作成ボタン
             ElevatedButton(
@@ -210,3 +232,4 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 }
+
