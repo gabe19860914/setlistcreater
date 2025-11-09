@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:printing/printing.dart';
-import '../models/setlist_model.dart';
+import '../models/setlist/setlist_model.dart';
 import '../utils/pdf_generator.dart';
 
 class ExportScreen extends StatelessWidget {

@@ -3,10 +3,13 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import '../models/setlist_model.dart';
 import '../models/setlist/setlist_model.dart';
 
-Future<Uint8List> generatePdf(Setlist setlist) async {
+Future<Uint8List> generatePdf(
+  Setlist setlist, {
+  required bool isLandscape,
+  required int divisionCount,
+}) async {
   final pdf = pw.Document();
 
   // プロジェクトのアセットから日本語フォントを読み込む
