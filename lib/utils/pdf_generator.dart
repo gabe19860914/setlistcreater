@@ -12,21 +12,16 @@ Future<Uint8List> generatePdf(
 }) async {
   final pdf = pw.Document();
 
-  // プロジェクトのアセットから日本語フォントを読み込む
+  // ★★★ 日本語フォントの読み込み処理 (インデント修正) ★★★
   final fontData = await rootBundle.load('assets/fonts/NotoSansJP-Regular.ttf');
-  final ttf = pw.Font.ttf(fontData.buffer.asByteData()); // <--- 修正1
-  final boldTtf = pw.Font.ttf((await rootBundle.load('assets/fonts/NotoSansJP-Bold.ttf')).buffer.asByteData()); // <--- 修正2
-
-  // PDF全体のテーマとしてフォントを設定
-  final theme = pw.ThemeData.withFont(
-    base: ttf,
-    bold: boldTtf,
+  final ttf = pw.Font.ttf(fontData.buffer.asByteData());
+  final pageTheme = pw.PageTheme(
+    pageFormat: isLandscape ? PdfPageFormat.a4.landscape : PdfPageFormat.a4.portrait,
+    theme: pw.ThemeData.withFont(base: ttf, bold: ttf),
   );
-
-  // --- 機能追加：ここから ---
+  // ★★★ ここまで ★★★
 
   // 1つのセットリストカラムを作成するウィジェットを定義
-  // これをページ内で4回再利用する
   pw.Widget buildSetlistColumn(Setlist setlist) {
     // 曲リストのヘッダー
     const tableHeaders = ['#', '曲名'];
@@ -83,26 +78,28 @@ Future<Uint8List> generatePdf(
     );
   }
 
-  // --- 機能追加：ここまで ---
+  // ★★★ divisionCount に基づいてカラムを動的に生成する関数 (追加) ★★★
+  List<pw.Widget> buildColumns() {
+    List<pw.Widget> columns = [];
+    for (int i = 0; i < divisionCount; i++) {
+      columns.add(pw.Expanded(child: buildSetlistColumn(setlist)));
+      // 最後のカラム以外は、間に余白を追加
+      if (i < divisionCount - 1) {
+        columns.add(pw.SizedBox(width: 20)); // カラム間の余白
+      }
+    }
+    return columns;
+  }
+  // ★★★ ここまで ★★★
 
   pdf.addPage(
     pw.Page(
-      theme: theme,
-      // 用紙をA4の横向きに設定
-      pageFormat: PdfPageFormat.a4.landscape,
+      pageTheme: pageTheme, // 修正した pageTheme を適用
       build: (pw.Context context) {
-        // RowとExpandedを使って4つのカラムを作成
+        // RowとExpandedを使ってカラムを作成
         return pw.Row(
           crossAxisAlignment: pw.CrossAxisAlignment.start,
-          children: [
-            pw.Expanded(child: buildSetlistColumn(setlist)),
-            pw.SizedBox(width: 20), // カラム間の余白
-            pw.Expanded(child: buildSetlistColumn(setlist)),
-            pw.SizedBox(width: 20), // カラム間の余白
-            pw.Expanded(child: buildSetlistColumn(setlist)),
-            pw.SizedBox(width: 20), // カラム間の余白
-            pw.Expanded(child: buildSetlistColumn(setlist)),
-          ],
+          children: buildColumns(), // divisionCount に応じたカラムを動的に生成
         );
       },
     ),
@@ -111,4 +108,3 @@ Future<Uint8List> generatePdf(
   // PDFをバイトデータとして保存
   return pdf.save();
 }
-
