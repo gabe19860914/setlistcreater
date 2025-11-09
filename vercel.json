@@ -1,9 +1,8 @@
-// vercel対応
 {
-  "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
-    }
+  "buildCommand": "git clone https://github.com/flutter/flutter.git --depth 1 --branch stable && export PATH=\"$PATH:`pwd`/flutter/bin\" && flutter config --enable-web && flutter pub get && flutter build web --release",
+  "outputDirectory": "build/web",
+  "routes": [
+    { "handle": "filesystem" },
+    { "src": "/.*", "dest": "/index.html" }
   ]
 }
