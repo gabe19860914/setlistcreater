@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import '../models/setlist_model.dart';
+import '../models/setlist/setlist_model.dart';
 
 Future<Uint8List> generatePdf(Setlist setlist) async {
   final pdf = pw.Document();

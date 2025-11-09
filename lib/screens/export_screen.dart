@@ -1,4 +1,4 @@
-import 'package.flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:printing/printing.dart';
 import '../models/setlist_model.dart';
 import '../utils/pdf_generator.dart';
