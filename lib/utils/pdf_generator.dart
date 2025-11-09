@@ -14,8 +14,8 @@ Future<Uint8List> generatePdf(
 
   // プロジェクトのアセットから日本語フォントを読み込む
   final fontData = await rootBundle.load('assets/fonts/NotoSansJP-Regular.ttf');
-  final ttf = pw.Font.ttf(fontData);
-  final boldTtf = pw.Font.ttf((await rootBundle.load('assets/fonts/NotoSansJP-Bold.ttf')));
+  final ttf = pw.Font.ttf(fontData.buffer.asByteData()); // <--- 修正1
+  final boldTtf = pw.Font.ttf((await rootBundle.load('assets/fonts/NotoSansJP-Bold.ttf')).buffer.asByteData()); // <--- 修正2
 
   // PDF全体のテーマとしてフォントを設定
   final theme = pw.ThemeData.withFont(
