@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../models/setlist_model.dart';
+import '../models/setlist/setlist_model.dart';
 import 'export_screen.dart';
 
 class HomeScreen extends StatefulWidget {
