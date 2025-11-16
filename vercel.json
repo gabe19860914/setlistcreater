@@ -1,5 +1,5 @@
 {
-  "buildCommand": "git clone https://github.com/flutter/flutter.git --depth 1 --branch stable && export PATH=\"$PATH:`pwd`/flutter/bin\" && flutter config --enable-web && flutter pub get && flutter build web --release",
+  "buildCommand": "git clone https://github.com/flutter/flutter.git --depth 1 --branch stable && export PATH=\"$PATH:`pwd`/flutter/bin\" && flutter config --enable-web && flutter pub get && echo \"Checking font files:\" && ls -la assets/fonts/ && flutter build web --release",
   "outputDirectory": "build/web",
   "routes": [
     { "handle": "filesystem" },
