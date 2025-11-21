@@ -117,8 +117,8 @@ class _HomeScreenState extends State<HomeScreen> {
   void dispose() {
     _titleController.dispose();
     _venueController.dispose();
-    _songTitleController.dispose(); // 既存
-    _masterSongController.dispose(); // ★追加
+    // _songTitleControllerは削除したので、ここからも削除します
+    _masterSongController.dispose(); 
     super.dispose();
   }
 

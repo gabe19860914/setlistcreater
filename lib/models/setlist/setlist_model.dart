@@ -1,8 +1,12 @@
 /// 1曲ごとの情報を保持するクラス
 class Song {
+  final int number;
   final String title;  // 曲名
 
-  Song({required this.title});
+  Song({
+    required this.number,
+    required this.title,
+    });
 }
 
 /// セットリスト全体の情報を保持するクラス
